@@ -4,14 +4,20 @@
  * and open the template in the editor.
  */
 package Formularios.Inventario;
-import Formularios.Principal.Principal;
+import java.awt.print.PrinterException;
+import java.text.MessageFormat;
+import java.util.List;
+import javax.swing.JOptionPane;
+import javax.swing.JTable;
+import javax.swing.table.DefaultTableModel;
 import libraries.formularios.libConsultarProductos;
+import libraries.identidades.ConsultaProducto;
 /**
  *
  * @author Ellet
  */
 public class ConsultarProducto extends javax.swing.JFrame {
-
+    libConsultarProductos lcp = new libConsultarProductos();
     /**
      * Creates new form ConsultarProducto
      */
@@ -139,12 +145,12 @@ public class ConsultarProducto extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void botonsalirActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_botonsalirActionPerformed
-        new libConsultarProductos().Limpiar();
+        Limpiar();
         this.setVisible(false);
     }//GEN-LAST:event_botonsalirActionPerformed
 
     private void botonconsultarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_botonconsultarActionPerformed
-        new libConsultarProductos().Sql();
+        tablaconsultaproductos.setModel(LlenarModelo());
         cbcategoria.setSelectedIndex(-1);
         txtbusqueda.setText("");
         txtbusqueda.setEnabled(false);
@@ -153,8 +159,8 @@ public class ConsultarProducto extends javax.swing.JFrame {
     }//GEN-LAST:event_botonconsultarActionPerformed
 
     private void botonimprimirActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_botonimprimirActionPerformed
-        new libConsultarProductos().Imprimir();
-        new libConsultarProductos().Limpiar();
+        Imprimir();
+        Limpiar();
     }//GEN-LAST:event_botonimprimirActionPerformed
 
     private void cbcategoriaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cbcategoriaActionPerformed
@@ -201,12 +207,57 @@ public class ConsultarProducto extends javax.swing.JFrame {
     private javax.swing.JButton botonconsultar;
     private javax.swing.JButton botonimprimir;
     private javax.swing.JButton botonsalir;
-    public static javax.swing.JComboBox<String> cbcategoria;
+    private javax.swing.JComboBox<String> cbcategoria;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JScrollPane jScrollPane1;
-    public static javax.swing.JTable tablaconsultaproductos;
-    public static javax.swing.JTextField txtbusqueda;
+    private javax.swing.JTable tablaconsultaproductos;
+    private javax.swing.JTextField txtbusqueda;
     // End of variables declaration//GEN-END:variables
+    
+    public void Imprimir(){
+        MessageFormat hf = new MessageFormat("Productos");
+        MessageFormat ff = new MessageFormat("");
+        try{
+            tablaconsultaproductos.print(JTable.PrintMode.FIT_WIDTH,hf,ff);
+        }
+        catch(PrinterException exc){
+            JOptionPane.showMessageDialog(null,exc.getMessage(),"WARNING!",JOptionPane.ERROR_MESSAGE);
+        }   
+    }
+    public void Limpiar(){
+        DefaultTableModel modelo = (DefaultTableModel) tablaconsultaproductos.getModel();
+        modelo.setRowCount(0);
+        tablaconsultaproductos.setModel(modelo);
+        txtbusqueda.setText("");
+        
+    }
+    
+    public DefaultTableModel LlenarModelo(){
+        List<ConsultaProducto> productos = lcp.Busqueda(txtbusqueda.getText(),cbcategoria.getSelectedIndex());
+        DefaultTableModel dtm = (DefaultTableModel)tablaconsultaproductos.getModel();
+        dtm.setRowCount(0);
+        Object fila [] = new Object[tablaconsultaproductos.getColumnCount()];
+        if(!productos.isEmpty()){
+            for(ConsultaProducto producto : productos){
+                fila[0] = producto.getCodigo();
+                fila[1] = producto.getNombreProducto();
+                fila[2] = producto.getDescripcion();
+                fila[3] = producto.getTipo();
+                fila[4] = producto.getPrecioUnitario();
+                fila[5] = producto.getCantidad();
+                fila[6] = producto.getProveedor();
+                dtm.addRow(fila);
+            }
+        }
+        else{
+            JOptionPane.showMessageDialog(null,"NO SE ENCONTRO REGISTROS","NOT FOUND",JOptionPane.INFORMATION_MESSAGE);
+        }
+        return dtm;
+    }
+
+
+
+
 }

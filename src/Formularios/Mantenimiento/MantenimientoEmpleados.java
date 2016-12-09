@@ -6,26 +6,34 @@
 package Formularios.Mantenimiento;
 
 
+import java.util.List;
+import javax.swing.DefaultListModel;
 import javax.swing.JOptionPane;
+import libraries.formularios.dbCargos;
 import libraries.formularios.dbEmpleados;
+import libraries.formularios.dbUsers;
 import libraries.formularios.libValidacionesTexto;
+import libraries.identidades.Cargo;
+import libraries.identidades.Empleado;
+import libraries.identidades.User;
 
 /**
  *
  * @author Ellet
  */
 public class MantenimientoEmpleados extends javax.swing.JFrame {
-
-    
+    dbCargos dbc = new dbCargos();
+    dbUsers dbu = new dbUsers();
+    dbEmpleados dbe = new dbEmpleados();
+    DefaultListModel dlm = new DefaultListModel();
     
     public MantenimientoEmpleados() {
         initComponents();
         this.setLocationRelativeTo(null);
-        
         lbidempleado.setVisible(false);
         txtidempleado.setVisible(false);
         this.setResizable(false);
-        new dbEmpleados().CargarCargos();
+        CargarCargos();
     }
 
     /**
@@ -297,37 +305,42 @@ public class MantenimientoEmpleados extends javax.swing.JFrame {
     }//GEN-LAST:event_txtnombreActionPerformed
 
     private void botoneliminarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_botoneliminarActionPerformed
-        if(new dbEmpleados().ValidacionEspaciosEliminar()){
+        if(ValidacionEspaciosEliminar()){
             JOptionPane.showMessageDialog(null, "DEBE LLENAR LA ID DEL EMPLEADO A ELIMINAR", "WARNING",JOptionPane.ERROR_MESSAGE);
         }
         else{
             DeshabilitarCampos();
-            new dbEmpleados().EliminarRegistros();
+            dbe.EliminarRegistros(Integer.parseInt(txtidempleado.getText()));
             botonnuevo.setEnabled(true);
             botonconsultar.setEnabled(true);
             botonrealizarconsulta.setEnabled(false);
             botonmodificar.setEnabled(false);
             botoneliminar.setEnabled(false);
             botonguardar.setEnabled(false);
-            new dbEmpleados().Limpiar();
+            Limpiar();
         }
         
     }//GEN-LAST:event_botoneliminarActionPerformed
 
     private void botonguardarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_botonguardarActionPerformed
-        if(new dbEmpleados().ValidacionEspaciosGuardar()){
+        if(ValidacionEspaciosGuardar()){
             JOptionPane.showMessageDialog(null, "DEBE LLENAR TODOS LOS DATOS", "WARNING",JOptionPane.ERROR_MESSAGE);
         }
         else{
             DeshabilitarCampos();
-            new dbEmpleados().IngresarIdentidades();
+            Cargo cargo = dbc.ConsultarRegistros(cbcargo.getSelectedItem().toString());
+            User user = dbu.BuscarUserPorId(Integer.parseInt(txtiduser.getText()));
+            Empleado empleado = new Empleado(txtcodigo.getText(),txtcedula.getText(),
+                                            txtnombre.getText(),txtapellido.getText(),txtdireccion.getText(),txttelefono.getText(),
+                                            cargo,user,txtfechanacimiento.getDate());
+            dbe.IngresarRegistros(empleado);
             botonnuevo.setEnabled(true);
             botonconsultar.setEnabled(true);
             botonrealizarconsulta.setEnabled(false);
             botonmodificar.setEnabled(false);
             botoneliminar.setEnabled(false);
             botonguardar.setEnabled(false);
-            new dbEmpleados().Limpiar();
+            Limpiar();
         }
         
     }//GEN-LAST:event_botonguardarActionPerformed
@@ -349,7 +362,7 @@ public class MantenimientoEmpleados extends javax.swing.JFrame {
         botonnuevo.setEnabled(false);
         botonconsultar.setEnabled(true);       
         HabilitarCampos();
-        new dbEmpleados().Limpiar();
+        Limpiar();
 
     }//GEN-LAST:event_botonnuevoActionPerformed
 
@@ -365,7 +378,7 @@ public class MantenimientoEmpleados extends javax.swing.JFrame {
         botonnuevo.setEnabled(true);
         botonconsultar.setEnabled(false);
         HabilitarCampos();
-        new dbEmpleados().Limpiar();
+        Limpiar();
 
     }//GEN-LAST:event_botonconsultarActionPerformed
 
@@ -386,26 +399,31 @@ public class MantenimientoEmpleados extends javax.swing.JFrame {
             JOptionPane.showMessageDialog(null, "PORFAVOR LLENE PARAMETRO DE BUSQUEDA","WARNING",JOptionPane.INFORMATION_MESSAGE);
         }
         else{
-            new dbEmpleados().ConsultarRegistros();
+            Consultar();
         }
         
         
     }//GEN-LAST:event_botonrealizarconsultaActionPerformed
 
     private void botonmodificarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_botonmodificarActionPerformed
-         if(new dbEmpleados().ValidacionEspaciosModificar()){
+         if(ValidacionEspaciosModificar()){
             JOptionPane.showMessageDialog(null, "DEBE LLENAR TODOS LOS DATOS", "WARNING",JOptionPane.ERROR_MESSAGE);
         }
         else{
-             DeshabilitarCampos();
-            new dbEmpleados().ModificarIdentidades();
+            DeshabilitarCampos();
+            Cargo cargo = dbc.ConsultarRegistros(cbcargo.getSelectedItem().toString());
+            User user = dbu.BuscarUserPorId(Integer.parseInt(txtiduser.getText()));
+            Empleado empleado = new Empleado(Integer.parseInt(txtidempleado.getText()),txtcodigo.getText(),txtcedula.getText(),
+                                            txtnombre.getText(),txtapellido.getText(),txtdireccion.getText(),txttelefono.getText(),
+                                            cargo,user,txtfechanacimiento.getDate());
+            dbe.ModificarRegistros(empleado);
             botonnuevo.setEnabled(true);
             botonconsultar.setEnabled(true);
             botonrealizarconsulta.setEnabled(false);
             botonmodificar.setEnabled(false);
             botoneliminar.setEnabled(false);
             botonguardar.setEnabled(false);
-            new dbEmpleados().Limpiar();
+            Limpiar();
         }
         
     }//GEN-LAST:event_botonmodificarActionPerformed
@@ -552,4 +570,119 @@ public class MantenimientoEmpleados extends javax.swing.JFrame {
     public static javax.swing.JTextField txtnombre;
     public static javax.swing.JTextField txttelefono;
     // End of variables declaration//GEN-END:variables
+    
+    public void Consultar(){
+        Empleado empleado = dbe.ConsultarRegistros(txtcodigo.getText());
+        if(empleado != null){
+            txtcodigo.setText(empleado.getCodigo_empleado());
+            txtcedula.setText(empleado.getCedula());
+            txtnombre.setText(empleado.getNombres_empleado());
+            txtapellido.setText(empleado.getApellidos_empleado());
+            txtfechanacimiento.setDate(empleado.getFechanacimiento());
+            txtdireccion.setText(empleado.getDireccion());
+            txttelefono.setText(empleado.getTelefono());
+            cbcargo.setSelectedItem(empleado.getCargo().getNombre_cargos());
+            txtiduser.setText(Integer.toString(empleado.getUser().getId_user()));
+            txtidempleado.setText(Integer.toString(empleado.getId_empleado()));
+        }
+    }
+    
+    public void CargarCargos(){
+        List<Cargo> cargos = dbc.CargarCargos();
+        dlm.removeAllElements();
+        for(Cargo cargo : cargos){
+            cbcargo.addItem(cargo.getNombre_cargos());
+            dlm.addElement(cargo);
+        }
+        cbcargo.setSelectedIndex(-1);
+    }
+    
+    
+    public void Limpiar(){
+        txtidempleado.setText("");
+        txtcodigo.setText("");
+        txtcedula.setText("");
+        txtnombre.setText("");
+        txtapellido.setText("");
+        txtfechanacimiento.setDate(null);
+        txtdireccion.setText("");
+        txttelefono.setText("");
+        txtiduser.setText("");
+        cbcargo.setSelectedIndex(-1);
+    }
+
+    public boolean ValidacionEspaciosGuardar(){
+        boolean espacio = false;
+        if(txtnombre.getText().replaceAll("\\s", "").equals("")){
+            espacio = true;
+        }
+        if(txtapellido.getText().replaceAll("\\s", "").equals("")){
+            espacio = true;
+        }
+        if(txtcedula.getText().replaceAll("\\s", "").equals("")){
+            espacio = true;
+        }if(txtcodigo.getText().replaceAll("\\s", "").equals("")){
+            espacio = true;
+        }
+        if(txtdireccion.getText().replaceAll("\\s", "").equals("")){
+            espacio = true;
+        }
+        if(txtfechanacimiento.getDate() == null){
+            espacio = true;
+        }
+        if(txttelefono.getText().replaceAll("\\s", "").equals("")){
+            espacio = true;
+        }
+        if(cbcargo.getSelectedIndex() == -1){
+            espacio = true;
+        }
+        if(txtiduser.getText().replaceAll("\\s", "").equals("")){
+            espacio = true;
+        }
+        return espacio;
+    }
+    
+    public boolean ValidacionEspaciosModificar(){
+         boolean espacio = false;
+        if(txtnombre.getText().replaceAll("\\s", "").equals("")){
+            espacio = true;
+        }
+        if(txtapellido.getText().replaceAll("\\s", "").equals("")){
+            espacio = true;
+        }
+        if(txtcedula.getText().replaceAll("\\s", "").equals("")){
+            espacio = true;
+        }
+        if(txtcodigo.getText().replaceAll("\\s", "").equals("")){
+            espacio = true;
+        }
+        if(txtdireccion.getText().replaceAll("\\s", "").equals("")){
+            espacio = true;
+        }
+        if(txtfechanacimiento.getDate() == null){
+            espacio = true;
+        }
+        if(txttelefono.getText().replaceAll("\\s", "").equals("")){
+            espacio = true;
+        }
+        if(cbcargo.getSelectedIndex() == -1){
+            espacio = true;
+        }
+        if(txtiduser.getText().replaceAll("\\s", "").equals("")){
+            espacio = true;
+        }
+        if(txtidempleado.getText().replaceAll("\\s", "").equals("")){
+            espacio = true;
+        }
+        return espacio;
+    }
+    
+    public boolean ValidacionEspaciosEliminar(){
+        boolean espacio = false;
+        if(txtidempleado.getText().replaceAll("\\s", "").equals("")){
+            espacio = true;
+        }
+        return espacio;
+    }
 }
+

@@ -34,18 +34,21 @@ public class dbUsers {
         }
     }
     
-    public int CargarIdUser(){
+    public User BuscarUserPorId(int id){
         Conexion con = new Conexion();
+        User user = null;
         try{
             Connection conex = con.Conectar();
-            PreparedStatement pst = conex.prepareCall("SELECT id_user FROM users WHERE username = '" + MantenimientoUsuarios.txtusername.getText() + "'");
+            PreparedStatement pst = conex.prepareCall("SELECT * FROM users WHERE id_user = ?");
+            pst.setInt(1, id);
             ResultSet rs = pst.executeQuery();
             rs.next();
-            return rs.getInt(1);
+            user = new User(rs.getInt(1),rs.getString(2),rs.getString(3),rs.getString(4));
+            return user;
         }
         catch(SQLException exc){
             JOptionPane.showMessageDialog(null,exc.getMessage(),"ERROR",JOptionPane.ERROR_MESSAGE);
-            return -1;
+            return null;
         }
     }
     

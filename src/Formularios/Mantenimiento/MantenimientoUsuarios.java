@@ -5,7 +5,7 @@
  */
 package Formularios.Mantenimiento;
 
-import Formularios.Principal.Principal;
+
 import javax.swing.JOptionPane;
 import libraries.formularios.dbUsers;
 import libraries.formularios.libValidacionesTexto;
@@ -239,10 +239,10 @@ public class MantenimientoUsuarios extends javax.swing.JFrame {
             User user = new User(txtusername.getText(),new String(txtpassword.getPassword()),
                 cbnivel.getSelectedItem().toString());
             dbu.IngresarRegistros(user);
-            /*int e = dbu.CargarIdUser();
-            if(e != -1 && botonregresar.isEnabled()){
-            MantenimientoEmpleados.txtiduser.setText(Integer.toString(e));
-            }*/
+            user = dbu.ConsultarRegistros(user.getUsername());
+            if(user.getId_user() != -1 && botonregresar.isEnabled()){
+                MantenimientoEmpleados.txtiduser.setText(Integer.toString(user.getId_user()));
+            }
             botonnuevo.setEnabled(true);
             botonrealizarconsulta.setEnabled(false);
             botonmodificar.setEnabled(false);

@@ -5,13 +5,12 @@
  */
 package libraries.formularios;
 
-import Formularios.Mantenimiento.MantenimientoCargos;
-
-import java.awt.event.KeyEvent;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 import javax.swing.JOptionPane;
 import libraries.conexion.Conexion;
 import libraries.identidades.Cargo;
@@ -85,6 +84,25 @@ public class dbCargos {
             JOptionPane.showMessageDialog(null,exc.getMessage(),"WARNING",JOptionPane.ERROR_MESSAGE);
         }
         
+    }
+    
+    public List<Cargo> CargarCargos(){
+        Conexion con = new Conexion();
+        List<Cargo> cargos = new ArrayList<Cargo>();
+        try{
+            Connection conex = con.Conectar();
+            PreparedStatement pst = conex.prepareStatement("SELECT * FROM cargos ORDER BY id_cargo ASC");
+            ResultSet rs = pst.executeQuery();
+            while(rs.next()){
+                Cargo cargo = new Cargo(rs.getInt(1),rs.getString(2));
+                cargos.add(cargo);
+            }
+            return cargos;
+        }
+        catch(SQLException exc){
+             JOptionPane.showMessageDialog(null,exc.getMessage(),"WARNING",JOptionPane.ERROR_MESSAGE);
+             return null;
+        }
     }
     
     

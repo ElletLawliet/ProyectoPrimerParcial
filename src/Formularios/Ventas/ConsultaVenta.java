@@ -4,14 +4,20 @@
  * and open the template in the editor.
  */
 package Formularios.Ventas;
-import Formularios.Principal.Principal;
+import java.awt.print.PrinterException;
+import java.text.MessageFormat;
+import java.util.List;
+import javax.swing.JOptionPane;
+import javax.swing.JTable;
+import javax.swing.table.DefaultTableModel;
 import libraries.formularios.libConsultarVentaProducto;
+import libraries.identidades.ConsultaVentaProducto;
 /**
  *
  * @author Ellet
  */
 public class ConsultaVenta extends javax.swing.JFrame {
-
+    libConsultarVentaProducto lcv = new libConsultarVentaProducto();
     /**
      * Creates new form ConsultaVentas
      */
@@ -142,7 +148,7 @@ public class ConsultaVenta extends javax.swing.JFrame {
 
     private void botonsalirActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_botonsalirActionPerformed
         this.setVisible(false);
-        new libConsultarVentaProducto().Limpiar();
+        Limpiar();
         
     }//GEN-LAST:event_botonsalirActionPerformed
 
@@ -162,17 +168,18 @@ public class ConsultaVenta extends javax.swing.JFrame {
     }//GEN-LAST:event_cbcategoriaActionPerformed
 
     private void botonconsultarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_botonconsultarActionPerformed
-        new libConsultarVentaProducto().SQL();
+        tablaconsultaventasproducto.setModel(LlenarModelo());
         cbcategoria.setSelectedIndex(-1);
         txtbusqueda.setText("");
         txtbusqueda.setEnabled(false);
         botonconsultar.setEnabled(false);
+        lbtotales.setText(lcv.SumaTotalesConsulta(array()));
         
     }//GEN-LAST:event_botonconsultarActionPerformed
 
     private void botonimprimirActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_botonimprimirActionPerformed
-        new libConsultarVentaProducto().Imprimir();
-        new libConsultarVentaProducto().Limpiar();
+        Imprimir();
+        Limpiar();
     }//GEN-LAST:event_botonimprimirActionPerformed
 
     /**
@@ -217,14 +224,71 @@ public class ConsultaVenta extends javax.swing.JFrame {
     private javax.swing.JButton botonconsultar;
     private javax.swing.JButton botonimprimir;
     private javax.swing.JButton botonsalir;
-    public static javax.swing.JComboBox<String> cbcategoria;
+    private javax.swing.JComboBox<String> cbcategoria;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JScrollPane jScrollPane1;
     public static javax.swing.JLabel lbtotales;
     public static javax.swing.JLabel lbtotalesconsulta;
-    public static javax.swing.JTable tablaconsultaventasproducto;
-    public static javax.swing.JTextField txtbusqueda;
+    private javax.swing.JTable tablaconsultaventasproducto;
+    private javax.swing.JTextField txtbusqueda;
     // End of variables declaration//GEN-END:variables
+    
+    public void Imprimir(){
+        MessageFormat hf = new MessageFormat("Ventas");
+        MessageFormat ff = new MessageFormat(lbtotalesconsulta.getText()+ "  " + lbtotales.getText());
+        try{
+            tablaconsultaventasproducto.print(JTable.PrintMode.FIT_WIDTH,hf,ff);
+        }
+        catch(PrinterException exc){
+            JOptionPane.showMessageDialog(null,exc.getMessage(),"WARNING!",JOptionPane.ERROR_MESSAGE);
+        }
+        
+    }
+    
+    public void Limpiar(){
+        DefaultTableModel modelo = (DefaultTableModel) tablaconsultaventasproducto.getModel();
+        modelo.setRowCount(0);
+        tablaconsultaventasproducto.setModel(modelo);
+        txtbusqueda.setText("");
+        lbtotales.setText(" ");
+    }
+    
+    public double [] array(){
+        double array [] = new double[tablaconsultaventasproducto.getRowCount()];
+        int c = 0;
+        while(c < array.length){
+            array[c] = (Double) tablaconsultaventasproducto.getValueAt(c, 7);
+            c++;
+        }
+        return array;
+    }
+    
+        
+    public DefaultTableModel LlenarModelo(){
+        List<ConsultaVentaProducto> ventas =lcv.Busqueda(txtbusqueda.getText(),cbcategoria.getSelectedIndex());
+        Object [] fila = new Object[tablaconsultaventasproducto.getColumnCount()];
+        DefaultTableModel dtm = (DefaultTableModel) tablaconsultaventasproducto.getModel();
+        dtm.setRowCount(0);
+        if(!ventas.isEmpty()){
+            for(ConsultaVentaProducto venta : ventas){
+                fila[0] = venta.getCodigoFactura();
+                fila[1] = venta.getFecha();
+                fila[2] = venta.getNombreCliente();
+                fila[3] = venta.getCodigoProducto();
+                fila[4] = venta.getNombreProducto();
+                fila[5] = venta.getPrecioUnitario();
+                fila[6] = venta.getCantidad();
+                fila[7] = venta.getTotal();
+                dtm.addRow(fila);
+            }
+        }
+        else{
+            JOptionPane.showMessageDialog(null,"NO SE ENCONTRO REGISTROS","NOT FOUND",JOptionPane.INFORMATION_MESSAGE);
+        }
+        return dtm;
+    }
+
+
 }

@@ -6,20 +6,17 @@
 package libraries.formularios;
 
 
-import Formularios.Ventas.ConsultaVenta;
-import java.awt.print.PrinterException;
 import java.math.BigDecimal;
 import java.sql.Connection;
+import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.text.MessageFormat;
+import java.util.ArrayList;
+import java.util.List;
 import javax.swing.JOptionPane;
-import javax.swing.JTable;
-import javax.swing.table.DefaultTableModel;
-
-import libraries.colas.ColasConsultaVentas;
 import libraries.conexion.Conexion;
+import libraries.identidades.ConsultaVentaProducto;
 
 /**
  *
@@ -27,66 +24,52 @@ import libraries.conexion.Conexion;
  */
 public class libConsultarVentaProducto {
     
-    public void SQL(){
+    public String SQL(String parametro, int indice){
         String sql= "";
-        if(ConsultaVenta.txtbusqueda.getText().equals("")){
+        if(parametro.equals("")){
             sql ="SELECT ventas_producto.*,ventas_general.nombre_cliente FROM ventas_producto "
                     + "INNER JOIN ventas_general ON (ventas_producto.id_ventas_general = ventas_general.id_venta_general)";
         }
         else{
-            if(ConsultaVenta.cbcategoria.getSelectedIndex() == 1){
+            if(indice == 1){
                 sql ="SELECT ventas_producto.*,ventas_general.nombre_cliente FROM ventas_producto "
                         + "INNER JOIN ventas_general ON (ventas_producto.id_ventas_general = ventas_general.id_venta_general) "
-                        + "WHERE nombre_producto LIKE '%"+ ConsultaVenta.txtbusqueda.getText().toUpperCase() +"%'";
+                        + "WHERE nombre_producto LIKE '%"+ parametro.toUpperCase() +"%'";
             }
             else{
-                if(ConsultaVenta.cbcategoria.getSelectedIndex() == 0){
+                if(indice == 0){
                     sql = "SELECT ventas_producto.*,ventas_general.nombre_cliente FROM ventas_producto "
                             + "INNER JOIN ventas_general ON (ventas_producto.id_ventas_general = ventas_general.id_venta_general) "
-                            + "WHERE ventas_producto.fecha = '"+ ConsultaVenta.txtbusqueda.getText().toUpperCase() +"'";
+                            + "WHERE ventas_producto.fecha = '"+ parametro.toUpperCase() +"'";
                 }
             }
         }
-        Busqueda(sql);
+        return sql;
     }
     
-    public void Busqueda(String sql){
-        DefaultTableModel model = (DefaultTableModel) ConsultaVenta.tablaconsultaventasproducto.getModel();
-        model.setRowCount(0);
-        ColasConsultaVentas colas = new ColasConsultaVentas();
+    public List<ConsultaVentaProducto> Busqueda(String parametro,int indice){
+        String sql = SQL(parametro,indice);
+        List <ConsultaVentaProducto> ventas = new ArrayList<ConsultaVentaProducto>();
         Conexion con = new Conexion();
         try{
             Connection conex = con.Conectar();
-            PreparedStatement pst = conex.prepareCall(sql,1004,1007);
+            PreparedStatement pst = conex.prepareCall(sql);
             ResultSet rs = pst.executeQuery();
-            if(rs.next()){
-               rs.beforeFirst();
-               while(rs.next()){
-                   colas.InsertarCola(rs.getInt(8),rs.getString(3),rs.getString(9), rs.getString(4), rs.getString(5), rs.getDouble(6),
-                           rs.getInt(2), rs.getDouble(7));
+            while(rs.next()){
+                ConsultaVentaProducto venta = new ConsultaVentaProducto(rs.getInt(8),ConvertirFechaUtil(rs.getDate(3)),rs.getString(9),
+                                                                        rs.getString(4),rs.getString(5),rs.getDouble(6),rs.getInt(2),
+                                                                        rs.getDouble(7));
+                ventas.add(venta);
                }
-               ConsultaVenta.tablaconsultaventasproducto.setModel(colas.LlenarArray());
-            }
-            else{
-                JOptionPane.showMessageDialog(null,"NO SE ENCONTRO REGISTROS CON EL PARAMETRO ESPECIFICADO", "NOT FOUND", JOptionPane.ERROR_MESSAGE);
-            }
+            return ventas;
         }
         catch(SQLException exc){
             JOptionPane.showMessageDialog(null,exc.getMessage(), "NOT FOUND", JOptionPane.ERROR_MESSAGE);
+            return null;
         }
     }
     
-    public void Imprimir(){
-        MessageFormat hf = new MessageFormat("Ventas");
-        MessageFormat ff = new MessageFormat(ConsultaVenta.lbtotalesconsulta.getText()+ "  " + ConsultaVenta.lbtotales.getText());
-        try{
-            ConsultaVenta.tablaconsultaventasproducto.print(JTable.PrintMode.FIT_WIDTH,hf,ff);
-        }
-        catch(PrinterException exc){
-            JOptionPane.showMessageDialog(null,exc.getMessage(),"WARNING!",JOptionPane.ERROR_MESSAGE);
-        }
-        
-    }
+    
     
     public BigDecimal ConvertirFormatear(double decimal){
         BigDecimal bg = new BigDecimal(decimal);
@@ -95,24 +78,21 @@ public class libConsultarVentaProducto {
     }
     
     
-    public void SumaTotalesConsulta(){
+    public String SumaTotalesConsulta(double [] totales){
         int c = 0;
-        double totales = 0;
-        while(c < ConsultaVenta.tablaconsultaventasproducto.getRowCount()){
-            totales += ConvertirFormatear(Double.parseDouble(ConsultaVenta.tablaconsultaventasproducto.getValueAt(c, 7).toString())).doubleValue();
+        double total = 0;
+        while(c < totales.length){
+            total += totales[c];
             c++;
         }
-        if(ConsultaVenta.tablaconsultaventasproducto.getRowCount() > 0){
-            ConsultaVenta.lbtotales.setText("$ " + Double.toString(totales));
-        }
+        return ConvertirFormatear(total).toString();
     }
     
-    public void Limpiar(){
-        DefaultTableModel modelo = (DefaultTableModel) ConsultaVenta.tablaconsultaventasproducto.getModel();
-        modelo.setRowCount(0);
-        ConsultaVenta.tablaconsultaventasproducto.setModel(modelo);
-        ConsultaVenta.txtbusqueda.setText("");
-        ConsultaVenta.lbtotales.setText(" ");
+    
+    
+    public java.util.Date ConvertirFechaUtil(java.sql.Date fecha){
+        java.util.Date date = new Date(fecha.getTime());
+        return date;
     }
 }
 

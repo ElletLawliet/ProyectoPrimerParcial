@@ -5,14 +5,21 @@
  */
 package Formularios.Ventas;
 
+import java.awt.print.PrinterException;
+import java.text.MessageFormat;
+import java.util.List;
+import javax.swing.JOptionPane;
+import javax.swing.JTable;
+import javax.swing.table.DefaultTableModel;
 import libraries.formularios.libConsultaRecargas;
+import libraries.identidades.ConsultaRecarga;
 
 /**
  *
  * @author Ellet
  */
 public class ConsultaRecargas extends javax.swing.JFrame {
-
+    libConsultaRecargas lcr = new libConsultaRecargas();
     /**
      * Creates new form ConsultaRecargas
      */
@@ -163,8 +170,8 @@ public class ConsultaRecargas extends javax.swing.JFrame {
     }//GEN-LAST:event_cbcategoriaActionPerformed
 
     private void botonconsultarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_botonconsultarActionPerformed
-        new libConsultaRecargas().SQL();
-        new libConsultaRecargas().SumaTotalesConsulta();
+        tbconsultarecargas.setModel(LlenarModelo());
+        lbtotales.setText(lcr.SumaTotalesConsulta(array()));
         cbcategoria.setSelectedIndex(-1);
         txtbusqueda.setText("");
         txtbusqueda.setEnabled(false);
@@ -172,13 +179,13 @@ public class ConsultaRecargas extends javax.swing.JFrame {
     }//GEN-LAST:event_botonconsultarActionPerformed
 
     private void botonsalirActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_botonsalirActionPerformed
-        new libConsultaRecargas().Limpiar();
+        Limpiar();
         this.setVisible(false);
     }//GEN-LAST:event_botonsalirActionPerformed
 
     private void botonimprimirActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_botonimprimirActionPerformed
-        new libConsultaRecargas().Imprimir();
-        new libConsultaRecargas().Limpiar();
+        Imprimir();
+        Limpiar();
     }//GEN-LAST:event_botonimprimirActionPerformed
 
     /**
@@ -220,14 +227,67 @@ public class ConsultaRecargas extends javax.swing.JFrame {
     private javax.swing.JButton botonconsultar;
     private javax.swing.JButton botonimprimir;
     private javax.swing.JButton botonsalir;
-    public static javax.swing.JComboBox<String> cbcategoria;
+    private javax.swing.JComboBox<String> cbcategoria;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JScrollPane jScrollPane1;
     public static javax.swing.JLabel lbtotales;
     public static javax.swing.JLabel lbtotalesconsulta;
-    public static javax.swing.JTable tbconsultarecargas;
-    public static javax.swing.JTextField txtbusqueda;
+    private javax.swing.JTable tbconsultarecargas;
+    private javax.swing.JTextField txtbusqueda;
     // End of variables declaration//GEN-END:variables
+    
+    public void Limpiar(){
+        DefaultTableModel modelo = (DefaultTableModel) tbconsultarecargas.getModel();
+        modelo.setRowCount(0);
+        tbconsultarecargas.setModel(modelo);
+        txtbusqueda.setText("");
+        lbtotales.setText(" ");
+    }
+    
+    public void Imprimir(){
+        MessageFormat hf = new MessageFormat("Recargas");
+        MessageFormat ff = new MessageFormat(lbtotalesconsulta.getText()+ "  " + ConsultaRecargas.lbtotales.getText());
+        try{
+            tbconsultarecargas.print(JTable.PrintMode.FIT_WIDTH,hf,ff);
+        }
+        catch(PrinterException exc){
+            JOptionPane.showMessageDialog(null,exc.getMessage(),"WARNING!",JOptionPane.ERROR_MESSAGE);
+        }
+    }
+    
+    public double [] array(){
+        double array [] = new double[tbconsultarecargas.getRowCount()];
+        int c = 0;
+        while(c < array.length){
+            array[c] = (Double)tbconsultarecargas.getValueAt(c, 6);
+            c++;
+        }
+        return array;
+    }
+    
+  
+    public DefaultTableModel LlenarModelo(){
+        List<ConsultaRecarga> recargas = lcr.Busqueda(txtbusqueda.getText(),cbcategoria.getSelectedIndex());
+        Object fila [] = new Object[tbconsultarecargas.getColumnCount()];
+        DefaultTableModel dtm = (DefaultTableModel)tbconsultarecargas.getModel();
+        dtm.setRowCount(0);
+        if(!recargas.isEmpty()){
+            for(ConsultaRecarga recarga : recargas){
+                fila[0] = recarga.getCodigoRecarga();
+                fila[1] = recarga.getFecha();
+                fila[2] = recarga.getNumero();
+                fila[3] = recarga.getMonto();
+                fila[4] = recarga.getEmpleado();
+                fila[5] = recarga.getPromocion();
+                fila[6] = recarga.getTotal();
+                dtm.addRow(fila);
+            }
+        }
+        else{
+            JOptionPane.showMessageDialog(null,"NO SE ENCONTRO REGISTROS","NOT FOUND",JOptionPane.INFORMATION_MESSAGE);
+        }
+        return dtm;
+    }
 }

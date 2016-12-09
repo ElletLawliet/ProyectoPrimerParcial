@@ -19,7 +19,7 @@ public class Conexion {
         Connection conex = null;
         try{
             Class.forName("org.postgresql.Driver");
-            conex = DriverManager.getConnection("jdbc:postgresql://localhost:5432/SDMT","Ellet","1234");
+            conex = DriverManager.getConnection("jdbc:postgresql://localhost:5432/SDMT","Ellet","sergitop12");
         }
         catch(SQLException | ClassNotFoundException exc){
             JOptionPane.showMessageDialog(null,exc.getMessage(),"ERROR",JOptionPane.ERROR_MESSAGE);

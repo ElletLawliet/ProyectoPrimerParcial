@@ -110,24 +110,6 @@ public class dbProveedores {
             return null;
         }
     }
-    
-    /*public Proveedor getProveedorByNombre(String parametro){
-        Conexion con = new Conexion();
-        Proveedor proveedor = null;
-        try{
-            Connection conex = con.Conectar();
-            PreparedStatement pst = conex.prepareStatement("SELECT * FROM proveedores WHERE nombre_proveedores = ?");
-            pst.setString(1, parametro.toUpperCase());
-            ResultSet rs = pst.executeQuery();
-            if(rs.next()){
-                
-            }
-        }
-        catch(SQLException exc){
-            JOptionPane.showMessageDialog(null,exc.getMessage(),"ERROR",JOptionPane.ERROR_MESSAGE); 
-            return null;
-        }
-    }*/
 
     
 }

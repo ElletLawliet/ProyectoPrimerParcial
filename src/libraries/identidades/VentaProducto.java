@@ -13,7 +13,7 @@ import java.util.Date;
  */
 public class VentaProducto {
     private int id_ventas_producto;
-     private int cantidad;
+    private int cantidad;
     private Date fecha;
     private String codigo_producto;
     private String nombre_producto;

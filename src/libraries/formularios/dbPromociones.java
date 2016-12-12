@@ -10,6 +10,8 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 import javax.swing.JOptionPane;
 import libraries.conexion.Conexion;
 import libraries.identidades.Promocion;
@@ -87,5 +89,26 @@ public class dbPromociones {
             JOptionPane.showMessageDialog(null,exc.getMessage(),"WARNING",JOptionPane.ERROR_MESSAGE);
         }
     }
+    
+    public List<Promocion> CargarPromociones(){
+        Conexion con = new Conexion();
+        List<Promocion> promociones = new ArrayList<Promocion>();
+        try{
+            Connection conex = con.Conectar();
+            PreparedStatement pst = conex.prepareCall("SELECT * FROM promociones");
+            ResultSet rs = pst.executeQuery();
+            while(rs.next()){
+                Promocion promocion = new Promocion(rs.getInt(1),rs.getString(2),rs.getString(3),rs.getString(4),rs.getString(5));
+                promociones.add(promocion);
+            }
+            return promociones;
+        }
+        catch(SQLException exc){
+            JOptionPane.showMessageDialog(null,exc.getMessage(),"WARNING",JOptionPane.ERROR_MESSAGE);
+            return null;
+        }
+    }
+    
+    
     
 } 

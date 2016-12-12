@@ -5,21 +5,31 @@
  */
 package Formularios.Ventas;
 
+import java.util.List;
 import javax.swing.JOptionPane;
-import libraries.formularios.libAñadirProducto;
+import javax.swing.SpinnerNumberModel;
 import libraries.formularios.libVentaProductos;
+import libraries.identidades.Inventario;
 
 /**
  *
  * @author Ellet
  */
 public class AñadirProducto extends javax.swing.JFrame {
-    
-    
+
+    public  javax.swing.JSpinner getContadorproductos() {
+        return contadorproductos;
+    }
+
+    public  void setContadorproductos(javax.swing.JSpinner aContadorproductos) {
+        contadorproductos = aContadorproductos;
+    }
+    private libVentaProductos lvp = new libVentaProductos();
+    private VentaProductos vp;
     public AñadirProducto() {
         initComponents();
         this.setLocationRelativeTo(null);
-        new libAñadirProducto().CargarProductos();
+        cbnombre.setSelectedIndex(-1);
         
     }
 
@@ -33,7 +43,7 @@ public class AñadirProducto extends javax.swing.JFrame {
     private void initComponents() {
 
         jLabel1 = new javax.swing.JLabel();
-        cbnombre = new javax.swing.JComboBox<>();
+        cbnombre = new javax.swing.JComboBox();
         jLabel2 = new javax.swing.JLabel();
         contadorproductos = new javax.swing.JSpinner();
         jLabel3 = new javax.swing.JLabel();
@@ -43,12 +53,22 @@ public class AñadirProducto extends javax.swing.JFrame {
 
         setTitle("SDMT - VENTA DE PRODUCTOS ");
         setResizable(false);
+        addWindowFocusListener(new java.awt.event.WindowFocusListener() {
+            public void windowGainedFocus(java.awt.event.WindowEvent evt) {
+                formWindowGainedFocus(evt);
+            }
+            public void windowLostFocus(java.awt.event.WindowEvent evt) {
+            }
+        });
         addWindowListener(new java.awt.event.WindowAdapter() {
             public void windowClosed(java.awt.event.WindowEvent evt) {
                 formWindowClosed(evt);
             }
             public void windowDeactivated(java.awt.event.WindowEvent evt) {
                 formWindowDeactivated(evt);
+            }
+            public void windowOpened(java.awt.event.WindowEvent evt) {
+                formWindowOpened(evt);
             }
         });
         getContentPane().setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
@@ -115,7 +135,7 @@ public class AñadirProducto extends javax.swing.JFrame {
 
     private void cbnombreActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cbnombreActionPerformed
         if(cbnombre.getSelectedIndex() != -1){
-           new libAñadirProducto().SetMaxValue();
+           SetMaxValue();
            botonañadir.setEnabled(true);
         }
         else{
@@ -124,14 +144,14 @@ public class AñadirProducto extends javax.swing.JFrame {
     }//GEN-LAST:event_cbnombreActionPerformed
 
     private void botonañadirActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_botonañadirActionPerformed
-        if(new libAñadirProducto().VerificarEspaciosAñadir()){
+        if(VerificarEspaciosAñadir()){
             JOptionPane.showMessageDialog(null, "PORFAVOR SELECCIONE EL PRODUCTO/CANTIDAD CORRECTO/S", "WARNING",JOptionPane.ERROR_MESSAGE);
         }
         else{
-            new libAñadirProducto().CargarTablaVentas();
+            vp.setTbventasData((Inventario) cbnombre.getSelectedItem());
             this.setVisible(false);
-            new libAñadirProducto().CalcularSubtotal();
-            new libVentaProductos().ModificarCantidadEspecifica();
+            setTotales();
+            vp.setProductos(lvp.ModificarCantidadEspecifica((Integer)contadorproductos.getValue(),(Inventario) cbnombre.getSelectedItem(), vp.getProductos()));
         }
         
     }//GEN-LAST:event_botonañadirActionPerformed
@@ -152,6 +172,12 @@ public class AñadirProducto extends javax.swing.JFrame {
     private void contadorproductosKeyTyped(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_contadorproductosKeyTyped
         
     }//GEN-LAST:event_contadorproductosKeyTyped
+
+    private void formWindowOpened(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowOpened
+    }//GEN-LAST:event_formWindowOpened
+
+    private void formWindowGainedFocus(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowGainedFocus
+    }//GEN-LAST:event_formWindowGainedFocus
 
     /**
      * @param args the command line arguments
@@ -193,11 +219,63 @@ public class AñadirProducto extends javax.swing.JFrame {
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton botonañadir;
     private javax.swing.JButton botoncancelar;
-    public static javax.swing.JComboBox<String> cbnombre;
-    public static javax.swing.JSpinner contadorproductos;
+    public static javax.swing.JComboBox cbnombre;
+    private javax.swing.JSpinner contadorproductos;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
     // End of variables declaration//GEN-END:variables
+
+    public void cargarProductos(){
+        List<Inventario> productos= vp.getProductos();
+        cbnombre.removeAllItems();
+        for(Inventario inventario : productos){
+            if(inventario.getCantidad() > 1){
+                cbnombre.addItem(inventario);
+            }
+        }
+        cbnombre.setSelectedIndex(-1);
+    }
+
+    public void SetMaxValue(){
+        SpinnerNumberModel spmodel = (SpinnerNumberModel) contadorproductos.getModel();
+        Inventario producto = (Inventario) cbnombre.getSelectedItem();
+        spmodel.setMaximum(producto.getCantidad());
+        contadorproductos.setModel(spmodel);
+    }
+    
+    //GETTERS Y SETTERS DE LA CLASE
+    public VentaProductos getVp() {
+        return vp;
+    }
+
+    public void setVp(VentaProductos vp) {
+        this.vp = vp;
+    }
+    
+    public void setTotales(){
+        double subtotal = lvp.CalcularSubtotal(vp.getTbventasDataColumn(5));
+        vp.setTxtsubtotal(lvp.ConvertirFormatear(subtotal));
+        double iva = lvp.calcularIva(subtotal);
+        vp.setTxtiva(lvp.ConvertirFormatear(iva));
+        double total = lvp.total(subtotal, iva);
+        vp.setTxttotal(lvp.ConvertirFormatear(total));
+        
+    }
+    
+    
+    public boolean VerificarEspaciosAñadir(){
+        boolean espacio = false;
+        SpinnerNumberModel spm = (SpinnerNumberModel) contadorproductos.getModel();
+        if(cbnombre.getSelectedIndex() == -1){
+            espacio = true;
+        }
+        if(Integer.parseInt(spm.getValue().toString()) > Integer.parseInt(spm.getMaximum().toString())){
+            espacio = true; 
+        }
+        return espacio;
+    }
+
+
 }

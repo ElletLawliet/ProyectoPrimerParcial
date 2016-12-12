@@ -4,7 +4,7 @@
  * and open the template in the editor.
  */
 package libraries.identidades;
-import java.sql.Date;
+import java.util.Date;
 /**
  *
  * @author Ellet

@@ -64,5 +64,9 @@ public class User {
         this.nivel = nivel;
     }
     
+    @Override
+    public String toString(){
+        return this.username;
+    }
     
 }

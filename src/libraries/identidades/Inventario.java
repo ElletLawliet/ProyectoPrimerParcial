@@ -110,6 +110,10 @@ public class Inventario {
         this.proveedor = proveedor;
     }
     
+    @Override
+    public String toString(){
+        return this.nombre_producto;
+    }
     
     
 }

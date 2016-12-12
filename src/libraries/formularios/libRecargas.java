@@ -5,16 +5,14 @@
  */
 package libraries.formularios;
 
-import Formularios.Principal.Principal;
-import Formularios.Ventas.Recargas;
 import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Calendar;
 import javax.swing.JOptionPane;
 import libraries.conexion.Conexion;
+import libraries.identidades.VentaRecarga;
 
 /**
  *
@@ -22,64 +20,24 @@ import libraries.conexion.Conexion;
  */
 public class libRecargas {
     
-    public void CargarPromociones(){
-        Conexion con = new Conexion();
-        try{
-            Connection conex = con.Conectar();
-            PreparedStatement pst = conex.prepareCall("SELECT nombre_promocion FROM promociones");
-            ResultSet rs = pst.executeQuery();
-            while(rs.next()){
-                Recargas.cbpromociones.addItem(rs.getString(1));
-            }
-            Recargas.cbpromociones.setSelectedIndex(-1);
-        }
-        catch(SQLException exc){
-            JOptionPane.showMessageDialog(null,exc.getMessage(),"WARNING",JOptionPane.ERROR_MESSAGE);
-        }
-    }
     
-    public int CargarIdPromociones(){
-        Conexion con = new Conexion();
-        try{
-            Connection conex = con.Conectar();
-            PreparedStatement pst = conex.prepareCall("SELECT id_promociones FROM promociones WHERE nombre_promocion ='"+Recargas.cbpromociones.getSelectedItem().toString()+"'");
-            ResultSet rs = pst.executeQuery();
-            rs.next();
-            return rs.getInt(1);
-        }
-        catch(SQLException exc){
-            JOptionPane.showMessageDialog(null,exc.getMessage(),"WARNING",JOptionPane.ERROR_MESSAGE);
-            return -1;
-        }
-    }
     
-    public int CargarIdEmpleado(){
-        Conexion con = new Conexion();
-        try{
-            Connection conex = con.Conectar();
-            PreparedStatement pst = conex.prepareCall("SELECT id_empleado FROM empleados WHERE nombres_empleado ='"+Principal.lbnombres.getText()+"'");
-            ResultSet rs = pst.executeQuery();
-            rs.next();
-            return rs.getInt(1);
-        }
-        catch(SQLException exc){
-            JOptionPane.showMessageDialog(null,exc.getMessage(),"WARNING",JOptionPane.ERROR_MESSAGE);
-            return -1;
-        }
-    }
     
-    public void RealizarRecarga(){
+    
+    
+    
+    public void RealizarRecarga(VentaRecarga recarga){
         Conexion con = new Conexion();
         try{
             Connection conex = con.Conectar();
             PreparedStatement pst = conex.prepareStatement("INSERT INTO ventas_recargas(fecha,cliente,numero,monto,id_empleado,id_promociones,total) VALUES(?,?,?,?,?,?,?)");
-            pst.setDate(1, ConvertirFecha());
-            pst.setString(2, "CONSUMIDOR FINAL");
-            pst.setString(3, Recargas.txtnumero.getText());
-            pst.setDouble(4, Monto());
-            pst.setInt(5, CargarIdEmpleado());
-            pst.setInt(6, CargarIdPromociones());
-            pst.setDouble(7, ConvertirFormatear(AumentoPromocion(Monto())).doubleValue());
+            pst.setDate(1, recarga.getFecha());
+            pst.setString(2, recarga.getCliente());
+            pst.setString(3, recarga.getNumero());
+            pst.setDouble(4, recarga.getMonto());
+            pst.setInt(5, recarga.getEmpleado().getId_empleado());
+            pst.setInt(6, recarga.getPromocion().getId_promociones());
+            pst.setDouble(7, recarga.getTotal());
             pst.executeUpdate();
         }
         catch(SQLException exc){
@@ -87,12 +45,15 @@ public class libRecargas {
         }
     }
     
-    public double AumentoPromocion(double monto){
-        if(Recargas.cbpromociones.getSelectedItem().toString().equals("WHATSAPP ILIMITADO") || Recargas.cbpromociones.getSelectedItem().toString().equals("FACEBOOK ILIMITADO")){
+    
+    
+    
+    public double AumentoPromocion(double monto, String parametro){
+        if(parametro.equals("WHATSAPP ILIMITADO") || parametro.equals("FACEBOOK ILIMITADO")){
             monto = monto + 1.00d;
         }
         else{
-            if(Recargas.cbpromociones.getSelectedItem().toString().equals("REDES SOCIALES ILIMITADAS")){
+            if(parametro.equals("REDES SOCIALES ILIMITADAS")){
                 monto = monto + 1.50d; 
             }
         }
@@ -105,23 +66,23 @@ public class libRecargas {
         return bg;
     }
     
-    public java.sql.Date ConvertirFecha(){
+    public java.sql.Date ObtenerFecha(){
         Calendar cal = Calendar.getInstance();
         java.sql.Date fecha = new java.sql.Date(cal.getTime().getTime());
         return fecha;
     }
     
-    public double Monto(){
+    public double Monto(String parametro){
         double monto = 0;
-        if(Recargas.rb1.isSelected()){
+        if(parametro.equals("$ 1")){
             monto = 1d;
         }
         else{
-            if(Recargas.rb3.isSelected()){
+            if(parametro.equals("$ 3")){
                 monto = 3d;
             }
             else{
-                if(Recargas.rb6.isSelected()){
+                if(parametro.equals("$ 6")){
                      monto = 6d;
                 }
             }
@@ -130,26 +91,5 @@ public class libRecargas {
     }
     
     
-    public void Limpiar(){
-        Recargas.cbpromociones.setSelectedIndex(-1);
-        Recargas.GrupoBotonRecarga.clearSelection();
-        Recargas.txtnumero.setText("");
-    }
-    
-    public boolean ValidarEspaciosRecargar(){
-        boolean espacios = false;
-        if(Recargas.txtnumero.getText().replaceAll("\\s", "").equals("")){
-            espacios = true;
-        }
-        if(Recargas.cbpromociones.getSelectedIndex() == -1){
-            espacios = true;
-        }
-        if(!(Recargas.rb1.isSelected() || Recargas.rb3.isSelected() || Recargas.rb6.isSelected())){
-            espacios = true;
-        }
-        if(Recargas.txtnumero.getText().length() <= 9){
-            espacios = true;
-        }
-        return espacios;
-    }
+   
 }

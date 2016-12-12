@@ -134,5 +134,8 @@ public class Empleado {
         this.user = user;
     }
     
-    
+    @Override
+    public String toString(){
+        return this.apellidos_empleado+ " " + this.nombres_empleado;
+    }
 }

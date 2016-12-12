@@ -6,125 +6,38 @@
 package libraries.formularios;
 
 
-import Formularios.Principal.Principal;
-import Formularios.Ventas.AñadirProducto;
-import Formularios.Ventas.VentaProducto;
-import java.awt.Point;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
+import Formularios.Ventas.VentaProductos;
+import java.math.BigDecimal;
 import java.sql.Connection;
-
+import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-
+import java.util.ArrayList;
 import java.util.Calendar;
-import javax.swing.JMenuItem;
+import java.util.List;
 import javax.swing.JOptionPane;
-import javax.swing.SwingUtilities;
-import javax.swing.table.DefaultTableModel;
 import libraries.conexion.Conexion;
+import libraries.identidades.Inventario;
+import libraries.identidades.VentaGeneral;
+import libraries.identidades.VentaProducto;
 
 /**
  *
  * @author Ellet
  */
 public class libVentaProductos {
-    
-    public void InicializarPopUp(){
-        JMenuItem ieliminar = new JMenuItem("ELIMINAR");
-        ieliminar.addMouseListener(new libVentaProductos().pml);
-        VentaProducto.PopEliminar.add(ieliminar);
-        VentaProducto.tbventas.setComponentPopupMenu(VentaProducto.PopEliminar);
-        VentaProducto.tbventas.addMouseListener(new libVentaProductos().ml);
-    }
-    
-    public void SeleccionarFila(MouseEvent evt){
-        Point punto = evt.getPoint();
-        int columnaactual = VentaProducto.tbventas.rowAtPoint(punto);
-        VentaProducto.tbventas.setRowSelectionInterval(columnaactual, columnaactual);
-        
-    }
-    
-    public void EliminarFila(){
-        DefaultTableModel modelo = (DefaultTableModel) VentaProducto.tbventas.getModel();
-        modelo.removeRow(VentaProducto.tbventas.getSelectedRow());
-        VentaProducto.tbventas.setModel(modelo);
-        
-    }
-    
-    public MouseListener ml = new MouseListener(){
-        @Override
-        public void mousePressed(MouseEvent evt){
-            if(SwingUtilities.isRightMouseButton(evt)){
-                SeleccionarFila(evt);
-                
-            }
-        }
-
-        @Override
-        public void mouseClicked(MouseEvent e) {
-            
-        }
-
-        @Override
-        public void mouseReleased(MouseEvent e) {
-            
-        }
-
-        @Override
-        public void mouseEntered(MouseEvent e) {
-            
-        }
-
-        @Override
-        public void mouseExited(MouseEvent e) {
-            
-        }
-    };
-    
-    public MouseListener pml = new MouseListener(){
-        @Override
-        public void mousePressed(MouseEvent evt){
-            if(SwingUtilities.isLeftMouseButton(evt)){
-                    ModificarCantidadMas();
-                    EliminarFila();
-                    new libAñadirProducto().CalcularSubtotal();
-                }
-            
-        }
-
-        @Override
-        public void mouseClicked(MouseEvent e) {
-            
-        }
-
-        @Override
-        public void mouseReleased(MouseEvent e) {
-            
-        }
-
-        @Override
-        public void mouseEntered(MouseEvent e) {
-            
-        }
-
-        @Override
-        public void mouseExited(MouseEvent e) {
-            
-        }
-    };
-    
-    public void GuardarDatosFactura(){
+       
+    public void GuardarDatosFactura(VentaGeneral venta){
         Conexion con = new Conexion();
         try{
             Connection conex = con.Conectar();
             PreparedStatement pst = conex.prepareStatement("INSERT INTO ventas_general(nombre_cliente,id_empleado,fecha,cedula_cliente,total) VALUES(?,?,?,?,?)");
-            pst.setString(1,VentaProducto.txtnombrecliente.getText().toUpperCase());
-            pst.setDate(3, ObtenerFecha());
-            pst.setInt(2, CargarIdEmpleado());
-            pst.setString(4, VentaProducto.txtcedulacliente.getText());
-            pst.setDouble(5, Double.parseDouble(VentaProducto.txttotal.getText()));
+            pst.setString(1,venta.getNombre_cliente().toUpperCase());
+            pst.setDate(3, ConvertirFechaSql(venta.getFecha()));
+            pst.setInt(2, venta.getEmpleado().getId_empleado());
+            pst.setString(4, venta.getCedulaCliente());
+            pst.setDouble(5, venta.getTotal());
             pst.executeUpdate();
         }
         catch(SQLException exc){
@@ -132,86 +45,86 @@ public class libVentaProductos {
         }
     }
     
-    public int CargarIdEmpleado(){
-        Conexion con = new Conexion();
-        try{
-            Connection conex = con.Conectar();
-            PreparedStatement pst = conex.prepareCall("SELECT id_empleado FROM empleados WHERE nombres_empleado='" + VentaProducto.lbnombreempleado.getText()+ "'");
-            ResultSet rs = pst.executeQuery();
-            rs.next();
-            return rs.getInt(1);
-        }
-        catch(SQLException exc){
-            JOptionPane.showMessageDialog(null, exc.getMessage(),"WARNING",JOptionPane.ERROR_MESSAGE);
-            return -1;
-        }
-    }
     
-    public java.sql.Date ObtenerFecha(){
+    public java.util.Date ObtenerFecha(){
         Calendar cal = Calendar.getInstance();
-        java.sql.Date fecha = new java.sql.Date(cal.getTime().getTime());
+        java.util.Date fecha = new java.util.Date(cal.getTime().getTime());
         return fecha;
     }
     
-    public void GuardarVentasProducto(){
-        int c = 0;
+    public void GuardarVentasProducto(VentaProducto venta){
         
         Conexion con = new Conexion();
         try{
             Connection conex = con.Conectar();
             PreparedStatement pst = conex.prepareStatement("INSERT INTO ventas_producto(cantidad,fecha,codigo_producto,nombre_producto,precio_unitario,total,id_ventas_general) VALUES(?,?,?,?,?,?,?)");
-            while(c < VentaProducto.tbventas.getRowCount()){
-                pst.setInt(1, Integer.parseInt(VentaProducto.tbventas.getValueAt(c, 4).toString()));
-                pst.setDate(2, ObtenerFecha());
-                pst.setString(3, VentaProducto.tbventas.getValueAt(c, 0).toString().toUpperCase());
-                pst.setString(4, VentaProducto.tbventas.getValueAt(c, 1).toString().toUpperCase());
-                pst.setDouble(5, Double.parseDouble(VentaProducto.tbventas.getValueAt(c, 3).toString()));
-                pst.setDouble(6, Double.parseDouble(VentaProducto.tbventas.getValueAt(c, 5).toString()));
-                pst.setInt(7, CargarIdVentas());
-                pst.executeUpdate();
-                c++;
-            }
+            pst.setInt(1, venta.getCantidad());
+            pst.setDate(2, ConvertirFechaSql(venta.getFecha()));
+            pst.setString(3, venta.getCodigo_producto().toUpperCase());
+            pst.setString(4, venta.getNombre_producto().toUpperCase());
+            pst.setDouble(5, venta.getPrecio_unitario());
+            pst.setDouble(6, venta.getTotal());
+            pst.setInt(7, venta.getVentageneral().getId_venta_general());
+            pst.executeUpdate();
         }
         catch(SQLException exc){
             JOptionPane.showMessageDialog(null, exc.getMessage(),"WARNING",JOptionPane.ERROR_MESSAGE);
         }
+    }
+        
+    public double CalcularSubtotal(ArrayList subtotales){
+        double suma = 0;
+        int c = 0;
+        while(c < subtotales.size()){
+            suma += Double.parseDouble(subtotales.get(c).toString());
+            c++;
+        }
+        return suma;        
     }
     
-    public int CargarIdVentas(){
-        Conexion con = new Conexion();
-        try{
-            Connection conex = con.Conectar();
-            PreparedStatement pst = conex.prepareCall("SELECT id_venta_general FROM ventas_general",1004,1007);
-            ResultSet rs = pst.executeQuery();
-            rs.last();
-            return rs.getInt(1);
-        }
-        catch(SQLException exc){
-            JOptionPane.showMessageDialog(null, exc.getMessage(),"WARNING",JOptionPane.ERROR_MESSAGE);
-            return -1;
-        }
+    public double calcularIva(double subtotal){
+        return subtotal * 0.14d;
     }
-    public void ModificarCantidadEspecifica(){
-        int cantidad = Integer.parseInt(AñadirProducto.contadorproductos.getValue().toString());
-        String parametro = AñadirProducto.cbnombre.getSelectedItem().toString().toUpperCase();
+    
+    public double total(double subtotal, double iva){
+        return subtotal + iva;
+    }
+    
+    public String ConvertirFormatear(double decimal){
+        BigDecimal bg = new BigDecimal(decimal);
+        bg = bg.setScale(2,BigDecimal.ROUND_HALF_UP);
+        return bg.toString();
+    }
+    
+    public java.sql.Date ConvertirFechaSql(java.util.Date fecha ){
+        java.sql.Date date = new Date(fecha.getTime());
+        return date;
+    }
+    
+    public String calcularSubtotalProducto(double precio, int cantidad){
+        return ConvertirFormatear(precio*cantidad);
+    }
+      
+    public List<Inventario> ModificarCantidadEspecifica(int cantidad,Inventario producto,List<Inventario> productos){
         int c = 0;
-        while(c < VentaProducto.simulacion.getRowCount()){
-            if(parametro.equals(VentaProducto.simulacion.getValueAt(c,1))){
-                int cantidadactual = Integer.parseInt(VentaProducto.simulacion.getValueAt(c,4).toString());
-                VentaProducto.simulacion.setValueAt(cantidadactual-cantidad,c,4);
+        for(Inventario inventario : productos){
+            if(producto.getNombre_producto().equals(inventario.getNombre_producto())){
+                inventario.setCantidad(inventario.getCantidad()-cantidad);
+                productos.set(c, inventario);
             }
             c++;
         }
+        return productos;
     }
-    public void ModificarCantidadMenos(){
+    public void ModificarCantidadMenos(ArrayList codigo, ArrayList cantidad){
         int c = 0;
         Conexion con = new Conexion();
         try{
             Connection conex = con.Conectar();
-            while(c < VentaProducto.tbventas.getRowCount()){
-                String cantidad = VentaProducto.tbventas.getValueAt(c, 4).toString();
-                String parametro = VentaProducto.tbventas.getValueAt(c, 0).toString();
-                PreparedStatement pst = conex.prepareStatement("UPDATE inventario SET cantidad = cantidad - "+ cantidad + " WHERE codigo_producto = '" + parametro + "'");
+            while(c < codigo.size()){
+                PreparedStatement pst = conex.prepareStatement("UPDATE inventario SET cantidad = cantidad - ? WHERE codigo_producto = ?");
+                pst.setInt(1,(Integer)cantidad.get(c));
+                pst.setString(2, codigo.get(c).toString());
                 pst.executeUpdate();
                 c++;
             }
@@ -233,60 +146,37 @@ public class libVentaProductos {
         }
     }
     
-    public void ModificarCantidadMas(){
-        int cantidad = Integer.parseInt(VentaProducto.tbventas.getValueAt(VentaProducto.tbventas.getSelectedRow(),4).toString());
-        String parametro = VentaProducto.tbventas.getValueAt(VentaProducto.tbventas.getSelectedRow(),1).toString().toUpperCase();
+    public List<Inventario> ModificarCantidadMas(int cantidad, String nombre, List<Inventario> productos){
         int c = 0;
-        while(c < VentaProducto.simulacion.getRowCount()){
-            if(parametro.equals(VentaProducto.simulacion.getValueAt(c,1))){
-                int cantidadactual = Integer.parseInt(VentaProducto.simulacion.getValueAt(c,4).toString());
-                VentaProducto.simulacion.setValueAt(cantidadactual+cantidad,c,4);
+        for(Inventario inventario : productos){
+            if(nombre.equals(inventario.getNombre_producto())){
+                inventario.setCantidad(inventario.getCantidad()+cantidad);
+                productos.set(c, inventario);
             }
             c++;
         }
+        return productos;
     }
     
-    public void CargarDatosEmpleado(){
-        VentaProducto.lbnombreempleado.setText(Principal.lbnombres.getText());
-        VentaProducto.lbapellidoempleado.setText(Principal.lbapellidos.getText());
+    public int CargarIdFactura(){
         Conexion con = new Conexion();
         try{
             Connection conex = con.Conectar();
-            PreparedStatement pst = conex.prepareCall("SELECT cedula FROM empleados WHERE nombres_empleado = '" + VentaProducto.lbnombreempleado.getText().toUpperCase()+"'");
+            PreparedStatement pst = conex.prepareStatement("SELECT id_venta_general FROM ventas_general",1004,1007);
             ResultSet rs = pst.executeQuery();
-            rs.next();
-            VentaProducto.lbcedulaempleado.setText(rs.getString(1));
+            rs.last();
+            return rs.getInt(1);
         }
         catch(SQLException exc){
             JOptionPane.showMessageDialog(null, exc.getMessage(),"WARNING",JOptionPane.ERROR_MESSAGE);
+            return -1;
         }
     }
     
-    public boolean ValidarEspaciosFacturar(){
-        boolean espacios = false;
-        if(VentaProducto.txtnombrecliente.getText().replaceAll("\\s", "").equals("")){
-            espacios = true;
-        }
-        if(VentaProducto.txtcedulacliente.getText().replaceAll("\\s","").equals("")){
-            espacios = true;
-        }
-        if(VentaProducto.txtiva.getText().replaceAll("\\s","").equals("")){
-            espacios = true;
-        }
-        if(VentaProducto.txtsubtotal.getText().replaceAll("\\s","").equals("")){
-            espacios = true;
-        }
-        if(VentaProducto.txttotal.getText().replaceAll("\\s","").equals("")){
-            espacios = true;
-        }
-        if(VentaProducto.tbventas.getRowCount() == 0){
-            espacios = true;
-        }
-        if(VentaProducto.txtcedulacliente.getText().length() <= 9){
-            espacios = true;
-        }
-        return espacios;
-    }
+    
+   
+    
+    
     
     
     

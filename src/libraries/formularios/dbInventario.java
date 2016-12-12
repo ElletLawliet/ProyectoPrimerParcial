@@ -10,6 +10,8 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 import javax.swing.JOptionPane;
 import libraries.conexion.Conexion;
 import libraries.identidades.Inventario;
@@ -41,22 +43,7 @@ public class dbInventario {
             JOptionPane.showMessageDialog(null,exc.getMessage(),"WARNING",JOptionPane.ERROR_MESSAGE);
         }
     }
-    
-    public int CargarIdProveedores(){
-        Conexion con = new Conexion();
-        try{
-            Connection conex = con.Conectar();
-            PreparedStatement pst = conex.prepareCall("SELECT id_proveedores FROM proveedores WHERE nombre_proveedores = '" + MantenimientoInventarios.cbproveedores.getSelectedItem().toString().toUpperCase() + "'");
-            ResultSet rs = pst.executeQuery();
-            rs.next();
-            return rs.getInt(1);
-        }
-        catch(SQLException exc){
-            JOptionPane.showMessageDialog(null,exc.getMessage(),"WARNING",JOptionPane.ERROR_MESSAGE);
-            return -1;
-        }
-    }
-    
+        
     public Inventario ConsultarRegistros(String parametro){
         Conexion con = new Conexion();
         Inventario inventario = null;
@@ -116,6 +103,26 @@ public class dbInventario {
         }
     }
     
+    public List<Inventario> cargarInventario(){
+        Conexion con = new Conexion();
+        List<Inventario> productos = new ArrayList<Inventario>();
+        try{
+            Connection conex = con.Conectar();
+            PreparedStatement pst = conex.prepareCall("SELECT proveedores.*,inventario.* FROM inventario INNER JOIN proveedores ON inventario.id_proveedor = proveedores.id_proveedores ORDER BY id_inventario ASC");
+            ResultSet rs = pst.executeQuery();
+            while(rs.next()){
+                Proveedor proveedor = new Proveedor(rs.getInt(1),rs.getString(2),rs.getString(3),rs.getString(4));
+                Inventario inventario = new Inventario(rs.getInt(5),rs.getString(6),rs.getString(7),rs.getString(8),rs.getString(9),
+                rs.getDouble(10),rs.getInt(11),proveedor);
+                productos.add(inventario);
+            }
+            return productos;
+        }
+        catch(SQLException exc){
+            JOptionPane.showMessageDialog(null,exc.getMessage(),"WARNING",JOptionPane.ERROR_MESSAGE);
+            return null;
+        }
+    }
     
     
         

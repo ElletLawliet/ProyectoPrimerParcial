@@ -76,5 +76,9 @@ public class Promocion {
         this.tipo = tipo;
     }
     
+    @Override
+    public String toString(){
+        return this.nombre_promocion;
+    }
     
 }

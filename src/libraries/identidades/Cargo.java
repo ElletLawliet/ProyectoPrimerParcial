@@ -42,6 +42,13 @@ public class Cargo {
     public void setNombre_cargos(String nombre_cargos) {
         this.nombre_cargos = nombre_cargos;
     }
+
+    @Override
+    public String toString() {
+        return this.nombre_cargos;
+    }
+    
+    
     
     
 }

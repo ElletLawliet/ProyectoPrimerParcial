@@ -12,21 +12,20 @@ import java.awt.print.Printable;
 import java.awt.print.PrinterException;
 import java.awt.print.PrinterJob;
 import javax.swing.JOptionPane;
-import libraries.formularios.libFacturaRecargas;
+import libraries.identidades.VentaRecarga;
 
 /**
  *
  * @author Ellet
  */
 public class FacturaRecargas extends javax.swing.JFrame implements Printable {
-
+      private VentaRecarga factura;
+      
     /**
      * Creates new form FacturaRecargas
      */
     public FacturaRecargas() {
         initComponents();
-        new libFacturaRecargas().CargarDatosEmpleados();
-        new libFacturaRecargas().CargarValoresFactura();
         this.setLocationRelativeTo(null);
        
     }
@@ -223,6 +222,7 @@ public class FacturaRecargas extends javax.swing.JFrame implements Printable {
     }// </editor-fold>//GEN-END:initComponents
 
     private void formWindowOpened(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowOpened
+        LlenadoFactura();
         Imprimir();
     }//GEN-LAST:event_formWindowOpened
 
@@ -256,6 +256,7 @@ public class FacturaRecargas extends javax.swing.JFrame implements Printable {
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
+                
                 new FacturaRecargas().setVisible(true);
             }
         });
@@ -306,16 +307,39 @@ public class FacturaRecargas extends javax.swing.JFrame implements Printable {
     private javax.swing.JLabel jLabel8;
     private javax.swing.JPanel jPanel2;
     private javax.swing.JPanel jPanel3;
-    public static javax.swing.JLabel lbapellidoempleado;
+    private javax.swing.JLabel lbapellidoempleado;
     public static javax.swing.JLabel lbfecha;
     private javax.swing.JLabel lblogo;
-    public static javax.swing.JLabel lbmonto;
-    public static javax.swing.JLabel lbnombreempleado;
-    public static javax.swing.JLabel lbnumero;
-    public static javax.swing.JLabel lbrecargo;
-    public static javax.swing.JLabel lbtotal;
+    private javax.swing.JLabel lbmonto;
+    private javax.swing.JLabel lbnombreempleado;
+    private javax.swing.JLabel lbnumero;
+    private javax.swing.JLabel lbrecargo;
+    private javax.swing.JLabel lbtotal;
     private javax.swing.JPanel plfactura;
     // End of variables declaration//GEN-END:variables
+
+    public void LlenadoFactura(){
+        lbfecha.setText(factura.getFecha().toString());
+        lbnombreempleado.setText(factura.getEmpleado().getNombres_empleado());
+        lbapellidoempleado.setText(factura.getEmpleado().getApellidos_empleado());
+        lbnumero.setText(factura.getNumero());
+        lbmonto.setText(Double.toString(factura.getMonto()));
+        lbrecargo.setText(Double.toString(CalculoRecargo()));
+        lbtotal.setText(Double.toString(factura.getTotal()));
+    }
+    public VentaRecarga getFactura() {
+        return factura;
+    }
+
+    public void setFactura(VentaRecarga factura) {
+        this.factura = factura;
+    }
+    
+    public double CalculoRecargo(){
+        double recargo = 0;
+        recargo = factura.getTotal() - factura.getMonto();
+        return recargo;
+    }
 
     
 }

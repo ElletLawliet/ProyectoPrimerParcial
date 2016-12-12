@@ -8,7 +8,7 @@ import Formularios.Ayuda.Acercade;
 import Formularios.Ayuda.SoporteTecnico;
 import Formularios.Ayuda.Staff;
 import Formularios.Ventas.Recargas;
-import Formularios.Ventas.VentaProducto;
+import Formularios.Ventas.VentaProductos;
 import Formularios.Ventas.ConsultaVenta;
 import Formularios.Inventario.ConsultarProducto;
 import Formularios.Mantenimiento.MantenimientoCargos;
@@ -28,6 +28,8 @@ import libraries.identidades.Empleado;
 public class Principal extends javax.swing.JFrame {
     libLogin lbl = new libLogin();
     public static String username = "";
+    public static String codigoEmpleado = "";
+   
     /**
      * Creates new form Principal
      */
@@ -367,7 +369,7 @@ public class Principal extends javax.swing.JFrame {
     }//GEN-LAST:event_menurecargasActionPerformed
 
     private void menuproductosActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_menuproductosActionPerformed
-        new VentaProducto().setVisible(true);
+        new VentaProductos().setVisible(true);
         
     }//GEN-LAST:event_menuproductosActionPerformed
 
@@ -509,14 +511,15 @@ public void CargarDatos(){
     lbniveluser.setText(empleado.getUser().getNivel());
     lbapellidos.setText(empleado.getApellidos_empleado());
     lbnombres.setText(empleado.getNombres_empleado());
+    codigoEmpleado = empleado.getCodigo_empleado();
 }
 
 public void ControlDeVisibilidad(){
-        if(Principal.lbniveluser.getText().equals("USUARIO")){
-            Principal.MenuMantenimiento.setVisible(false);
+        if(lbniveluser.getText().equals("USUARIO")){
+            MenuMantenimiento.setVisible(false);
         }
         else{
-            Principal.MenuMantenimiento.setVisible(true);
+            MenuMantenimiento.setVisible(true);
         }
     }
 }

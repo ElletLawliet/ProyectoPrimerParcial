@@ -55,22 +55,7 @@ public class dbEmpleados {
         java.util.Date date = new Date(fecha.getTime());
         return date;
     }
-    
-    public int IdCargo(){
-        Conexion con = new Conexion();
-        try{
-            Connection conex = con.Conectar();
-            PreparedStatement pst = conex.prepareCall("SELECT id_cargo FROM cargos WHERE nombre_cargo = '" + MantenimientoEmpleados.cbcargo.getSelectedItem().toString().toUpperCase()+ "'");
-            ResultSet rs = pst.executeQuery();
-            rs.next();
-            return rs.getInt(1);
-        }
-        catch(SQLException exc){
-            JOptionPane.showMessageDialog(null,exc.getMessage(),"WARNING",JOptionPane.ERROR_MESSAGE);
-            return -1;
-        }
-    }
-        
+            
     public void ModificarRegistros(Empleado empleado){
         Conexion con = new Conexion();
         String sentencia = "UPDATE empleados SET codigo_empleado=?,cedula=?,nombres_empleado=?,apellidos_empleado=?,direccion=?,telefono=?,id_cargo=?,id_user=?,fechanacimiento=? WHERE id_empleado = ?"; 

@@ -4,23 +4,36 @@
  * and open the template in the editor.
  */
 package Formularios.Ventas;
+
 import Formularios.Principal.Principal;
+import java.util.List;
+import javax.swing.DefaultComboBoxModel;
+import javax.swing.DefaultListModel;
 import javax.swing.JOptionPane;
+import libraries.formularios.dbEmpleados;
+import libraries.formularios.dbPromociones;
 import libraries.formularios.libRecargas;
 import libraries.formularios.libValidacionesTexto;
+import libraries.identidades.Empleado;
+import libraries.identidades.Promocion;
+import libraries.identidades.VentaRecarga;
 /**
  *
  * @author Ellet
  */
 public class Recargas extends javax.swing.JFrame {
-
+    dbPromociones dbp = new dbPromociones();
+    libRecargas lr = new libRecargas();
+    dbEmpleados dbe = new dbEmpleados();
+    DefaultListModel dlm = new DefaultListModel();
     /**
      * Creates new form Recargas
      */
     public Recargas() {
         initComponents();
         this.setLocationRelativeTo(null);
-        new libRecargas().CargarPromociones();
+        CargarPromociones();
+        
     }
 
     /**
@@ -35,7 +48,7 @@ public class Recargas extends javax.swing.JFrame {
         GrupoBotonRecarga = new javax.swing.ButtonGroup();
         jLabel1 = new javax.swing.JLabel();
         jPanel1 = new javax.swing.JPanel();
-        cbpromociones = new javax.swing.JComboBox<>();
+        cbpromociones = new javax.swing.JComboBox();
         jPanel2 = new javax.swing.JPanel();
         rb1 = new javax.swing.JRadioButton();
         rb3 = new javax.swing.JRadioButton();
@@ -184,13 +197,16 @@ public class Recargas extends javax.swing.JFrame {
     }//GEN-LAST:event_rb1ActionPerformed
 
     private void botonrecargarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_botonrecargarActionPerformed
-        if(new libRecargas().ValidarEspaciosRecargar()){
+        if(ValidarEspaciosRecargar()){
             JOptionPane.showMessageDialog(null, "DEBE LLENAR TODOS LOS DATOS","WARNING",JOptionPane.ERROR_MESSAGE);
         }
         else{
-            new libRecargas().RealizarRecarga();
-            new FacturaRecargas().setVisible(true);
-            new libRecargas().Limpiar();
+            VentaRecarga factura  = Recargar();
+            FacturaRecargas fac = new FacturaRecargas();
+            fac.setFactura(factura);
+            fac.setVisible(true);
+            Limpiar();
+            
         }
         
     }//GEN-LAST:event_botonrecargarActionPerformed
@@ -244,15 +260,79 @@ public class Recargas extends javax.swing.JFrame {
     public static javax.swing.ButtonGroup GrupoBotonRecarga;
     private javax.swing.JButton botoncancelar;
     private javax.swing.JButton botonrecargar;
-    public static javax.swing.JComboBox<String> cbpromociones;
+    private javax.swing.JComboBox cbpromociones;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel8;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;
-    public static javax.swing.JRadioButton rb1;
-    public static javax.swing.JRadioButton rb3;
-    public static javax.swing.JRadioButton rb6;
-    public static javax.swing.JTextField txtnumero;
+    private javax.swing.JRadioButton rb1;
+    private javax.swing.JRadioButton rb3;
+    private javax.swing.JRadioButton rb6;
+    private javax.swing.JTextField txtnumero;
     // End of variables declaration//GEN-END:variables
+    
+    public void Limpiar(){
+        cbpromociones.setSelectedIndex(-1);
+        GrupoBotonRecarga.clearSelection();
+        txtnumero.setText("");
+    }
+    
+    public boolean ValidarEspaciosRecargar(){
+        boolean espacios = false;
+        if(txtnumero.getText().replaceAll("\\s", "").equals("")){
+            espacios = true;
+        }
+        if(cbpromociones.getSelectedIndex() == -1){
+            espacios = true;
+        }
+        if(!(rb1.isSelected() || rb3.isSelected() || rb6.isSelected())){
+            espacios = true;
+        }
+        if(txtnumero.getText().length() <= 9){
+            espacios = true;
+        }
+        return espacios;
+    }
+    
+    public void CargarPromociones(){
+        List<Promocion> promociones = dbp.CargarPromociones();
+        cbpromociones.removeAllItems();
+        dlm.removeAllElements();
+        for(Promocion promocion : promociones){
+            cbpromociones.addItem(promocion.getNombre_promocion());
+            dlm.addElement(promocion);
+        }
+        cbpromociones.setSelectedIndex(-1);
+    }
+    
+    public VentaRecarga Recargar(){
+        Promocion promocion = (Promocion) dlm.getElementAt(cbpromociones.getSelectedIndex());
+        Empleado empleado = dbe.ConsultarRegistros(Principal.codigoEmpleado);
+        String parametro = cbpromociones.getSelectedItem().toString();
+        double monto = lr.Monto(TextoRb());
+        VentaRecarga recarga = new VentaRecarga(lr.ObtenerFecha(),"CONSUMIDOR FINAL",txtnumero.getText(),
+                                                (int)monto,empleado,promocion,
+                                                lr.ConvertirFormatear(lr.AumentoPromocion(monto,parametro)).doubleValue());
+        lr.RealizarRecarga(recarga);
+        return recarga;
+    }
+    
+    public String TextoRb(){
+        if(rb1.isSelected()){
+            return rb1.getText();
+        }
+        else{
+            if(rb3.isSelected()){
+                return rb3.getText();
+            }
+            else{
+                return rb6.getText();
+            }
+        }
+    }
+    
+    
+            
+            
 }
